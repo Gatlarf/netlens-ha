@@ -1,0 +1,102 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Netlens",
+        "description": "Enter the address of your Netlens (for example http://192.168.0.189:8080) and its access token (the NETLENS_TOKEN you log in with).",
+        "data": {
+          "url": "Netlens URL",
+          "token": "Access token",
+          "verify_ssl": "Verify the TLS certificate (only matters for https)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Netlens needs a new token",
+        "description": "The token for {url} was refused. Enter the current one.",
+        "data": {
+          "token": "Access token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach Netlens at that address.",
+      "invalid_auth": "Netlens refused the token.",
+      "invalid_url": "That is not a valid address.",
+      "unsupported": "This Netlens is too old, or newer than this integration understands. Update Netlens (it needs the statistics API) or the integration."
+    },
+    "abort": {
+      "already_configured": "This Netlens is already set up.",
+      "reauth_successful": "The new token works."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Netlens options",
+        "description": "Devices you tick get their own presence sensor and device (the hierarchy of Netlens is mirrored: a device hangs below its parent when the parent is ticked too).",
+        "data": {
+          "scan_interval": "Poll interval (seconds)",
+          "track_events": "Fire Home Assistant events for new devices, devices going offline and so on",
+          "devices": "Devices to track"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "devices_total": {
+        "name": "Devices"
+      },
+      "devices_online": {
+        "name": "Devices online"
+      },
+      "devices_offline": {
+        "name": "Devices offline"
+      },
+      "devices_new_24h": {
+        "name": "New devices (24 h)"
+      },
+      "devices_stale": {
+        "name": "Devices not seen for 30 days"
+      },
+      "uptime_24h": {
+        "name": "Network uptime (24 h)"
+      },
+      "uptime_7d": {
+        "name": "Network uptime (7 days)"
+      },
+      "open_ports": {
+        "name": "Open ports"
+      },
+      "events_24h": {
+        "name": "Events (24 h)"
+      },
+      "last_scan": {
+        "name": "Last scan"
+      },
+      "last_scan_duration": {
+        "name": "Last scan duration"
+      },
+      "last_scan_hosts": {
+        "name": "Last scan hosts found"
+      },
+      "last_scan_age": {
+        "name": "Time since last good scan"
+      },
+      "problems": {
+        "name": "Problems"
+      },
+      "version": {
+        "name": "Version"
+      }
+    },
+    "binary_sensor": {
+      "problem": {
+        "name": "Problem"
+      },
+      "scan_running": {
+        "name": "Scan running"
+      }
+    }
+  }
+}
