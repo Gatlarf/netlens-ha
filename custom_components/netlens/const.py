@@ -23,4 +23,8 @@ EVENT_MAP = {
     "device_online": "netlens_device_online",
     "port_opened": "netlens_port_opened",
     "ip_changed": "netlens_ip_changed",
+    "ip_reused": "netlens_ip_reused",
+    "service_down": "netlens_service_down",
+    "service_up": "netlens_service_up",
+    "wifi_roamed": "netlens_wifi_roamed",
 }

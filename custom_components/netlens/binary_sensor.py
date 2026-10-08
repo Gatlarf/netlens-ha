@@ -86,4 +86,4 @@ class NetlensPresenceSensor(NetlensDeviceEntity, BinarySensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         device = self.netlens_device or {}
-        return {k: device.get(k) for k in ("ip", "mac", "vendor", "type", "parent_name", "last_seen")}
+        return {k: device.get(k) for k in ("ip", "mac", "vendor", "type", "parent_name", "last_seen", "trusted")}

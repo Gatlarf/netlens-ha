@@ -11,6 +11,8 @@ EVENTS = [
     {"id": 42, "ts": "2026-10-08T12:00:40Z", "device_id": 4, "kind": "device_new", "detail": "192.168.0.60 Acme"},
     {"id": 43, "ts": "2026-10-08T12:00:50Z", "device_id": 5, "kind": "os_changed", "detail": "a -> b"},  # no Home Assistant event for this kind
     {"id": 44, "ts": "2026-10-08T12:01:00Z", "device_id": 5, "kind": "port_opened", "detail": "445"},
+    {"id": 45, "ts": "2026-10-08T12:01:10Z", "device_id": None, "kind": "service_down", "detail": "Web (192.168.0.70:80) is down: refused"},
+    {"id": 46, "ts": "2026-10-08T12:01:20Z", "device_id": 3, "kind": "wifi_roamed", "detail": "Garden -> Attic (5 GHz)"},
 ]
 
 
@@ -18,16 +20,20 @@ async def test_new_netlens_events_become_home_assistant_events(hass, mock_netlen
     new_device = async_capture_events(hass, "netlens_new_device")
     offline = async_capture_events(hass, "netlens_device_offline")
     port = async_capture_events(hass, "netlens_port_opened")
+    svc_down = async_capture_events(hass, "netlens_service_down")
+    roamed = async_capture_events(hass, "netlens_wifi_roamed")
     entry = make_entry()
     await setup(hass, entry)
-    assert not (new_device or offline or port)  # the first poll only remembers where it is
+    assert not (new_device or offline or port or svc_down or roamed)  # the first poll only remembers where it is
 
-    summary["events"]["last_id"] = 44
+    summary["events"]["last_id"] = 46
     mock_netlens.get(f"{URL}/api/events", json=EVENTS)
     await poll(hass, freezer)
     assert [e.data["event_id"] for e in offline] == [41] and offline[0].data["device_name"] == "Laptop" and offline[0].data["mac"] == "aa:00:00:00:00:03"
     assert new_device[0].data["detail"] == "192.168.0.60 Acme" and new_device[0].data["ip"] == "192.168.0.60"
     assert port[0].data["entry_id"] == entry.entry_id and port[0].data["time"] == "2026-10-08T12:01:00Z"
+    assert [e.data["detail"] for e in svc_down] == ["Web (192.168.0.70:80) is down: refused"] and svc_down[0].data["device_name"] is None
+    assert roamed[0].data["device_name"] == "Laptop" and roamed[0].data["detail"] == "Garden -> Attic (5 GHz)"
     assert "since_id=40" in str([c[1] for c in mock_netlens.mock_calls if "api/events" in str(c[1])][0])
 
     # nothing new: no more requests and no repeats

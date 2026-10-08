@@ -13,7 +13,7 @@ It only reads from Netlens (one request per minute for everything) and never cha
 
 ## Requirements
 
-- Netlens **0.2.38 or newer** (it needs the statistics API, `GET /api/stats/summary`).
+- Netlens **0.2.38 or newer** (the Wi-Fi, unknown-device and service sensors need the Netlens that has those features and show *unknown* with an older one) (it needs the statistics API, `GET /api/stats/summary`).
 - Home Assistant **2024.12 or newer**.
 - Home Assistant must be able to reach Netlens (default `http://<host>:8080`) and you need Netlens' access token (the `NETLENS_TOKEN` you log in with).
 
@@ -59,19 +59,21 @@ All of these belong to the **Netlens** device.
 
 | Entity | Notes |
 |---|---|
-| Devices, Devices online, Devices offline | counts |
+| Devices, Devices online, Devices offline, Unknown devices | counts (*unknown* = not marked as known in Netlens) |
 | New devices (24 h) | devices first seen in the last day |
 | Network uptime (24 h) | share of successful checks over all devices, in % |
 | Open ports | open ports found on all devices |
 | Events (24 h) | events Netlens logged in the last day |
 | Last scan | timestamp (device class *timestamp*) |
 | Last scan duration, Last scan hosts found | of the most recent finished scan |
+| Wi-Fi clients, Weak Wi-Fi clients | from a router plugin in Netlens (weak = signal below -75 dBm) |
+| Service checks down | checks of the Netlens *Services* page that are down |
 | Problems, Version | diagnostic |
 | Problem | binary sensor (*problem*); attributes list the failing plugins and the scan failures of the last 24 h |
 | Scan running | binary sensor (*running*) |
-| *Devices not seen for 30 days*, *Network uptime (7 days)*, *Time since last good scan* | disabled by default; enable them in the entity list |
+| *Devices not seen for 30 days*, *Network uptime (7 days)*, *Time since last good scan*, *Average Wi-Fi signal*, *Service checks* | disabled by default; enable them in the entity list |
 
-For each **tracked device**: a binary sensor named after the device (*connectivity*: on = online). Attributes: `ip`, `mac`, `vendor`, `type`, `parent_name`, `last_seen`. The Home Assistant device carries the vendor, type and MAC address, links to the device page in Netlens, and sits below its parent when the parent is tracked as well (otherwise below the Netlens hub). Renames in Netlens are followed. A device deleted in Netlens becomes *unavailable*.
+For each **tracked device**: a binary sensor named after the device (*connectivity*: on = online). Attributes: `ip`, `mac`, `vendor`, `type`, `parent_name`, `last_seen`, `trusted`. The Home Assistant device carries the vendor, type and MAC address, links to the device page in Netlens, and sits below its parent when the parent is tracked as well (otherwise below the Netlens hub). Renames in Netlens are followed. A device deleted in Netlens becomes *unavailable*.
 
 ## Events
 
@@ -82,6 +84,9 @@ When *Fire events* is on, new entries of the Netlens event log are fired on the 
 | `netlens_new_device` | a device was seen for the first time |
 | `netlens_device_offline` / `netlens_device_online` | a device went offline / came back |
 | `netlens_port_opened` | a new open port appeared on a device |
+| `netlens_service_down` / `netlens_service_up` | a service check of Netlens went down / recovered (`detail` says which) |
+| `netlens_wifi_roamed` | a Wi-Fi device moved to another mesh node |
+| `netlens_ip_reused` | an IP address was taken over by another device |
 | `netlens_ip_changed` | a device changed its IP address |
 
 Event data: `entry_id`, `event_id`, `time`, `detail`, `device_id`, `device_name`, `ip`, `mac`.

@@ -88,6 +88,24 @@
       },
       "version": {
         "name": "Version"
+      },
+      "devices_unknown": {
+        "name": "Unknown devices"
+      },
+      "wifi_clients": {
+        "name": "Wi-Fi clients"
+      },
+      "wifi_weak": {
+        "name": "Weak Wi-Fi clients"
+      },
+      "wifi_signal": {
+        "name": "Average Wi-Fi signal"
+      },
+      "services_down": {
+        "name": "Service checks down"
+      },
+      "services_total": {
+        "name": "Service checks"
       }
     },
     "binary_sensor": {

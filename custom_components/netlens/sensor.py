@@ -22,6 +22,15 @@ from . import NetlensConfigEntry
 from .entity import NetlensHubEntity
 
 
+def _dig(data: dict[str, Any], *path: str) -> Any:
+    """Value at a path in the summary, or None when this Netlens version does not report it (additive API)."""
+    for key in path:
+        if not isinstance(data, dict):
+            return None
+        data = data.get(key)
+    return data
+
+
 def _last(data: dict[str, Any], key: str) -> Any:
     return (data["scans"].get("last") or {}).get(key)
 
@@ -46,6 +55,18 @@ SENSORS: tuple[NetlensSensorDescription, ...] = (
                              native_unit_of_measurement="devices", value_fn=lambda d: d["devices"]["new_24h"]),
     NetlensSensorDescription(key="devices_stale", translation_key="devices_stale", icon="mdi:lan-pending", state_class=SensorStateClass.MEASUREMENT,
                              native_unit_of_measurement="devices", entity_registry_enabled_default=False, value_fn=lambda d: d["devices"]["stale_30d"]),
+    NetlensSensorDescription(key="devices_unknown", translation_key="devices_unknown", icon="mdi:help-network-outline", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="devices", value_fn=lambda d: _dig(d, "devices", "unknown")),
+    NetlensSensorDescription(key="wifi_clients", translation_key="wifi_clients", icon="mdi:wifi", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="devices", value_fn=lambda d: _dig(d, "wifi", "clients")),
+    NetlensSensorDescription(key="wifi_weak", translation_key="wifi_weak", icon="mdi:wifi-strength-1-alert", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="devices", value_fn=lambda d: _dig(d, "wifi", "weak")),
+    NetlensSensorDescription(key="wifi_signal", translation_key="wifi_signal", device_class=SensorDeviceClass.SIGNAL_STRENGTH, state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="dBm", entity_registry_enabled_default=False, value_fn=lambda d: _dig(d, "wifi", "avg_rssi")),
+    NetlensSensorDescription(key="services_down", translation_key="services_down", icon="mdi:server-network-off", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="checks", value_fn=lambda d: _dig(d, "services", "down")),
+    NetlensSensorDescription(key="services_total", translation_key="services_total", icon="mdi:server-network", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="checks", entity_registry_enabled_default=False, value_fn=lambda d: _dig(d, "services", "total")),
     NetlensSensorDescription(key="uptime_24h", translation_key="uptime_24h", icon="mdi:chart-line", state_class=SensorStateClass.MEASUREMENT,
                              native_unit_of_measurement=PERCENTAGE, suggested_display_precision=1, value_fn=lambda d: d["uptime"]["24h"]),
     NetlensSensorDescription(key="uptime_7d", translation_key="uptime_7d", icon="mdi:chart-line", state_class=SensorStateClass.MEASUREMENT,
