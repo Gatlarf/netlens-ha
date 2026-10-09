@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Connect to Netlens",
-        "description": "Enter the address of your Netlens (for example http://192.168.0.189:8080) and its access token (the NETLENS_TOKEN you log in with).",
+        "description": "Enter the address of your Netlens (for example http://192.168.0.189:8080) and an API token (create one in Netlens under Settings > Users & tokens; a read-only viewer user is enough). Older installs can use their NETLENS_TOKEN.",
         "data": {
           "url": "Netlens URL",
           "token": "Access token",
@@ -21,7 +21,7 @@
       },
       "reauth_confirm": {
         "title": "Netlens needs a new token",
-        "description": "The token for {url} was refused. Enter the current one.",
+        "description": "The token for {url} was refused. Create a new API token in Netlens (Settings > Users & tokens) and enter it here.",
         "data": {
           "token": "Access token"
         }

@@ -17,7 +17,7 @@ It only reads from Netlens (one request per minute for everything) and never cha
 
 - Netlens **0.2.38 or newer** (the Wi-Fi, unknown-device and service sensors need the Netlens that has those features and show *unknown* with an older one) (it needs the statistics API, `GET /api/stats/summary`).
 - Home Assistant **2024.12 or newer**.
-- Home Assistant must be able to reach Netlens (default `http://<host>:8080`) and you need Netlens' access token (the `NETLENS_TOKEN` you log in with).
+- Home Assistant must be able to reach Netlens (default `http://<host>:8080`) and you need an **API token** from Netlens (*Settings → Users & tokens*; a read-only viewer user is enough) or, on older installs, the `NETLENS_TOKEN` access token.
 
 ## Installation
 
@@ -38,7 +38,7 @@ Copy the folder `custom_components/netlens` of this repository into the `custom_
 | Field | Meaning |
 |---|---|
 | Netlens URL | for example `http://192.168.0.189:8080` (without `http://` it is added) |
-| Access token | the Netlens token, or (better, Netlens 0.2.50 and later) an **API token of a read-only viewer user**: create the user and token under *Settings → Users & tokens* in Netlens, so Home Assistant can look but never change anything |
+| Access token | an **API token of a read-only viewer user** (Netlens 0.2.50 and later; recommended), or the `NETLENS_TOKEN` of an older install: create the user and token under *Settings → Users & tokens* in Netlens, so Home Assistant can look but never change anything |
 | Verify the TLS certificate | only matters for `https` (for example behind a reverse proxy with a self-signed certificate) |
 
 If Netlens later refuses the token, Home Assistant asks for a new one (re-authentication). To change the token or the address on purpose, open the integration (Settings → Devices & services → Netlens), the three-dot menu of the entry, and choose **Reconfigure**: leave the token empty to keep the current one. Entities, names and automations stay.
@@ -154,7 +154,7 @@ entities:
 | Message | What to do |
 |---|---|
 | *Cannot reach Netlens at that address* | Check the URL and port, and that Home Assistant can reach that host (Docker networks, firewall). |
-| *Netlens refused the token* | Use the token you log in to Netlens with (`NETLENS_TOKEN`). |
+| *Netlens refused the token* | Create a new API token under *Settings → Users & tokens* in Netlens (or use the `NETLENS_TOKEN` of an older install), then use the entry's **Reconfigure** or **Re-authenticate**. |
 | *This Netlens is too old, or newer than this integration understands* | Update Netlens to 0.2.38 or newer, or update this integration. |
 | Entities show *unavailable* | Netlens did not answer; the log of the integration says why. They recover by themselves. |
 
