@@ -13,6 +13,10 @@ EVENTS = [
     {"id": 44, "ts": "2026-10-08T12:01:00Z", "device_id": 5, "kind": "port_opened", "detail": "445"},
     {"id": 45, "ts": "2026-10-08T12:01:10Z", "device_id": None, "kind": "service_down", "detail": "Web (192.168.0.70:80) is down: refused"},
     {"id": 46, "ts": "2026-10-08T12:01:20Z", "device_id": 3, "kind": "wifi_roamed", "detail": "Garden -> Attic (5 GHz)"},
+    {"id": 47, "ts": "2026-10-08T12:01:30Z", "device_id": 5, "kind": "port_unexpected", "detail": "tcp/23 telnet"},
+    {"id": 48, "ts": "2026-10-08T12:01:40Z", "device_id": 5, "kind": "port_missing", "detail": "tcp/443 https"},
+    {"id": 49, "ts": "2026-10-08T12:01:50Z", "device_id": 5, "kind": "port_closed", "detail": "tcp/8080"},
+    {"id": 50, "ts": "2026-10-08T12:02:00Z", "device_id": None, "kind": "backup_failed", "detail": "disk full"},
 ]
 
 
@@ -26,9 +30,12 @@ async def test_new_netlens_events_become_home_assistant_events(hass, mock_netlen
     await setup(hass, entry)
     assert not (new_device or offline or port or svc_down or roamed)  # the first poll only remembers where it is
 
-    summary["events"]["last_id"] = 46
+    extra = {k: async_capture_events(hass, f"netlens_{k}") for k in ("port_unexpected", "port_missing", "port_closed", "backup_failed")}
+    summary["events"]["last_id"] = 50
     mock_netlens.get(f"{URL}/api/events", json=EVENTS)
     await poll(hass, freezer)
+    assert [e.data["detail"] for e in extra["port_unexpected"]] == ["tcp/23 telnet"] and [e.data["detail"] for e in extra["port_missing"]] == ["tcp/443 https"]
+    assert len(extra["port_closed"]) == 1 and extra["backup_failed"][0].data["detail"] == "disk full" and extra["backup_failed"][0].data["device_name"] is None
     assert [e.data["event_id"] for e in offline] == [41] and offline[0].data["device_name"] == "Laptop" and offline[0].data["mac"] == "aa:00:00:00:00:03"
     assert new_device[0].data["detail"] == "192.168.0.60 Acme" and new_device[0].data["ip"] == "192.168.0.60"
     assert port[0].data["entry_id"] == entry.entry_id and port[0].data["time"] == "2026-10-08T12:01:00Z"

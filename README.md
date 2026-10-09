@@ -36,7 +36,7 @@ Copy the folder `custom_components/netlens` of this repository into the `custom_
 | Field | Meaning |
 |---|---|
 | Netlens URL | for example `http://192.168.0.189:8080` (without `http://` it is added) |
-| Access token | the Netlens token |
+| Access token | the Netlens token, or (better, Netlens 0.2.50 and later) an **API token of a read-only viewer user**: create the user and token under *Settings → Users & tokens* in Netlens, so Home Assistant can look but never change anything |
 | Verify the TLS certificate | only matters for `https` (for example behind a reverse proxy with a self-signed certificate) |
 
 If Netlens later refuses the token, Home Assistant asks for a new one (re-authentication).
@@ -88,6 +88,10 @@ When *Fire events* is on, new entries of the Netlens event log are fired on the 
 | `netlens_device_offline` / `netlens_device_online` | a device went offline / came back |
 | `netlens_port_opened` | a new open port appeared on a device |
 | `netlens_service_down` / `netlens_service_up` | a service check of Netlens went down / recovered (`detail` says which) |
+| `netlens_port_unexpected` | a port outside the device's baseline opened (Netlens 0.2.50 and later) |
+| `netlens_port_missing` | a port from the device's baseline is gone |
+| `netlens_port_closed` | a port closed on a device without a baseline |
+| `netlens_backup_failed` | a scheduled Netlens backup failed (`detail` says why) |
 | `netlens_wifi_roamed` | a Wi-Fi device moved to another mesh node |
 | `netlens_ip_reused` | an IP address was taken over by another device |
 | `netlens_ip_changed` | a device changed its IP address |

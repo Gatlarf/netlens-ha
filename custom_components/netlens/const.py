@@ -27,4 +27,8 @@ EVENT_MAP = {
     "service_down": "netlens_service_down",
     "service_up": "netlens_service_up",
     "wifi_roamed": "netlens_wifi_roamed",
+    "port_unexpected": "netlens_port_unexpected",
+    "port_missing": "netlens_port_missing",
+    "port_closed": "netlens_port_closed",
+    "backup_failed": "netlens_backup_failed",
 }
