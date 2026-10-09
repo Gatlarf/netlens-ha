@@ -106,6 +106,9 @@
       },
       "services_total": {
         "name": "Service checks"
+      },
+      "plugin_updates": {
+        "name": "Plugin updates available"
       }
     },
     "binary_sensor": {
@@ -114,6 +117,11 @@
       },
       "scan_running": {
         "name": "Scan running"
+      }
+    },
+    "update": {
+      "netlens_update": {
+        "name": "Update"
       }
     }
   }

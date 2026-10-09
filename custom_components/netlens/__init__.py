@@ -13,7 +13,7 @@ from .const import CONF_TOKEN, CONF_URL, CONF_VERIFY_SSL, DOMAIN
 from .coordinator import NetlensCoordinator
 from .entity import register_devices, tracked_keys
 
-PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.UPDATE]
 
 type NetlensConfigEntry = ConfigEntry[NetlensCoordinator]
 

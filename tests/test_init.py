@@ -14,7 +14,7 @@ async def test_setup_creates_the_hub_sensors(hass, mock_netlens):
 
     expected = {
         "devices_total": "5", "devices_online": "4", "devices_offline": "1", "devices_new_24h": "1", "open_ports": "17", "events_24h": "6",
-        "uptime_24h": "99.5", "devices_unknown": "2", "wifi_clients": "3", "wifi_weak": "1", "services_down": "1", "last_scan_duration": "35", "last_scan_hosts": "31", "problems": "0", "version": "0.2.40",
+        "uptime_24h": "99.5", "devices_unknown": "2", "plugin_updates": "2", "wifi_clients": "3", "wifi_weak": "1", "services_down": "1", "last_scan_duration": "35", "last_scan_hosts": "31", "problems": "0", "version": "0.2.40",
     }
     for key, value in expected.items():
         assert state(hass, entry, "sensor", key).state == value, key
@@ -116,3 +116,22 @@ async def test_an_older_netlens_without_the_newer_fields_still_works(hass, mock_
     assert state(hass, entry, "sensor", "devices_total").state == "5"
     for key in ("devices_unknown", "wifi_clients", "wifi_weak", "services_down"):
         assert state(hass, entry, "sensor", key).state == "unknown"  # no value, but no crash
+
+
+async def test_update_entity_announces_a_newer_netlens(hass, mock_netlens, summary, freezer):
+    entry = make_entry()
+    await setup(hass, entry)
+    up = state(hass, entry, "update", "update")
+    assert up.state == "on" and up.attributes["installed_version"] == "0.2.44" and up.attributes["latest_version"] == "0.2.46"
+    assert up.attributes["release_url"].endswith("CHANGELOG.md") and up.attributes["plugin_updates_available"] == 2
+    summary["update"] = {"current": "0.2.46", "latest": "0.2.46", "available": False, "plugin_updates": 0}
+    await poll(hass, freezer)
+    assert state(hass, entry, "update", "update").state == "off"
+
+
+async def test_update_entity_with_an_older_netlens(hass, mock_netlens, summary):
+    summary.pop("update")
+    entry = make_entry()
+    await setup(hass, entry)
+    up = state(hass, entry, "update", "update")
+    assert up.state == "off" and up.attributes["installed_version"] == "0.2.40"  # nothing newer is claimed

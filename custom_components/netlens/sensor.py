@@ -67,6 +67,8 @@ SENSORS: tuple[NetlensSensorDescription, ...] = (
                              native_unit_of_measurement="checks", value_fn=lambda d: _dig(d, "services", "down")),
     NetlensSensorDescription(key="services_total", translation_key="services_total", icon="mdi:server-network", state_class=SensorStateClass.MEASUREMENT,
                              native_unit_of_measurement="checks", entity_registry_enabled_default=False, value_fn=lambda d: _dig(d, "services", "total")),
+    NetlensSensorDescription(key="plugin_updates", translation_key="plugin_updates", icon="mdi:puzzle-outline", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="plugins", value_fn=lambda d: _dig(d, "update", "plugin_updates")),
     NetlensSensorDescription(key="uptime_24h", translation_key="uptime_24h", icon="mdi:chart-line", state_class=SensorStateClass.MEASUREMENT,
                              native_unit_of_measurement=PERCENTAGE, suggested_display_precision=1, value_fn=lambda d: d["uptime"]["24h"]),
     NetlensSensorDescription(key="uptime_7d", translation_key="uptime_7d", icon="mdi:chart-line", state_class=SensorStateClass.MEASUREMENT,

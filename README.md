@@ -68,12 +68,15 @@ All of these belong to the **Netlens** device.
 | Last scan duration, Last scan hosts found | of the most recent finished scan |
 | Wi-Fi clients, Weak Wi-Fi clients | from a router plugin in Netlens (weak = signal below -75 dBm) |
 | Service checks down | checks of the Netlens *Services* page that are down |
+| Plugin updates available | installed Netlens plugins that have a newer release in the plugin index |
 | Problems, Version | diagnostic |
 | Problem | binary sensor (*problem*); attributes list the failing plugins and the scan failures of the last 24 h |
 | Scan running | binary sensor (*running*) |
 | *Devices not seen for 30 days*, *Network uptime (7 days)*, *Time since last good scan*, *Average Wi-Fi signal*, *Service checks* | disabled by default; enable them in the entity list |
 
 For each **tracked device**: a binary sensor named after the device (*connectivity*: on = online). Attributes: `ip`, `mac`, `vendor`, `type`, `parent_name`, `last_seen`, `trusted`. The Home Assistant device carries the vendor, type and MAC address, links to the device page in Netlens, and sits below its parent when the parent is tracked as well (otherwise below the Netlens hub). Renames in Netlens are followed. A device deleted in Netlens becomes *unavailable*.
+
+**Update entity** (`update.netlens_update`): *on* when a newer Netlens has been published; its release link opens the changelog. It cannot install the update (update your container as described in the Netlens README), but it works with Home Assistant's update notifications and automations.
 
 ## Events
 

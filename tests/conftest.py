@@ -28,6 +28,7 @@ SUMMARY = {
         "failed_24h": 0,
     },
     "plugins": [{"id": "asus", "enabled": True, "ok": True, "error": None, "ts": "2026-10-08T11:58:30Z"}],
+    "update": {"current": "0.2.44", "latest": "0.2.46", "available": True, "plugin_updates": 2},
     "problems": 0,
     "problem": False,
     "device_list": [
