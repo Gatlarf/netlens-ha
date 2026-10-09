@@ -1,3 +1,5 @@
+<p align="center"><img src="images/logo.png" alt="Netlens" width="360"></p>
+
 # Netlens for Home Assistant
 
 A [Home Assistant](https://www.home-assistant.io/) integration for **[Netlens](https://github.com/Gatlarf/netlens)**, a self-hosted LAN scanner and network map. It brings Netlens' statistics and device presence into Home Assistant:
