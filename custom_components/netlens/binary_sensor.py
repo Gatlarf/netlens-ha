@@ -19,7 +19,7 @@ from .entity import NetlensDeviceEntity, NetlensHubEntity, tracked_keys
 
 async def async_setup_entry(hass: HomeAssistant, entry: NetlensConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = entry.runtime_data
-    async_add_entities([NetlensProblemSensor(coordinator, entry), NetlensScanRunningSensor(coordinator, entry)])
+    async_add_entities([NetlensProblemSensor(coordinator, entry), NetlensScanRunningSensor(coordinator, entry), NetlensBackupProblemSensor(coordinator, entry), NetlensPassiveSensor(coordinator, entry)])
 
     added: set[str] = set()
 
@@ -57,6 +57,7 @@ class NetlensProblemSensor(NetlensHubEntity, BinarySensorEntity):
             "scans_failed_24h": data["scans"]["failed_24h"],
             "seconds_since_last_good_scan": data["scans"]["last_ok_age_s"],
             "failing_plugins": {p["id"]: p["error"] for p in data["plugins"] if p["enabled"] and p["ok"] is False},
+            "backup_failed": (data.get("backup") or {}).get("last_ok") is False,
         }
 
 
@@ -70,6 +71,49 @@ class NetlensScanRunningSensor(NetlensHubEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         return bool(self.coordinator.data["scans"]["running"])
+
+
+class NetlensBackupProblemSensor(NetlensHubEntity, BinarySensorEntity):
+    """On when the last scheduled backup failed; unknown while no backup has run (or scheduled backups are off)."""
+
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_translation_key = "backup_problem"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, coordinator, entry) -> None:
+        super().__init__(coordinator, entry, "backup_problem")
+
+    @property
+    def is_on(self) -> bool | None:
+        last_ok = (self.coordinator.data.get("backup") or {}).get("last_ok")
+        return None if last_ok is None else not last_ok
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        backup = self.coordinator.data.get("backup") or {}
+        return {"enabled": backup.get("enabled"), "last_at": backup.get("last_at"), "error": backup.get("last_error")}
+
+
+class NetlensPassiveSensor(NetlensHubEntity, BinarySensorEntity):
+    """Is Netlens listening to the announcements devices make (DHCP, mDNS, UPnP)?"""
+
+    _attr_device_class = BinarySensorDeviceClass.RUNNING
+    _attr_translation_key = "passive_listening"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator, entry) -> None:
+        super().__init__(coordinator, entry, "passive_listening")
+
+    @property
+    def is_on(self) -> bool | None:
+        passive = self.coordinator.data.get("passive")
+        return None if passive is None else bool(passive.get("running"))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        passive = self.coordinator.data.get("passive") or {}
+        return {"announcements_heard": passive.get("frames"), "devices_updated": passive.get("applied")}
 
 
 class NetlensPresenceSensor(NetlensDeviceEntity, BinarySensorEntity):

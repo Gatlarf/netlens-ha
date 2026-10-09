@@ -119,6 +119,21 @@
       },
       "plugin_updates": {
         "name": "Plugin updates available"
+      },
+      "devices_flapping": {
+        "name": "Flapping devices"
+      },
+      "devices_unknown_type": {
+        "name": "Devices of unknown type"
+      },
+      "devices_private_address": {
+        "name": "Devices with a private address"
+      },
+      "dhcp_servers": {
+        "name": "DHCP servers"
+      },
+      "last_backup": {
+        "name": "Last backup"
       }
     },
     "binary_sensor": {
@@ -127,6 +142,12 @@
       },
       "scan_running": {
         "name": "Scan running"
+      },
+      "backup_problem": {
+        "name": "Backup problem"
+      },
+      "passive_listening": {
+        "name": "Passive listening"
       }
     },
     "update": {

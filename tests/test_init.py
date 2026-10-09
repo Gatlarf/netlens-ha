@@ -15,21 +15,26 @@ async def test_setup_creates_the_hub_sensors(hass, mock_netlens):
     expected = {
         "devices_total": "5", "devices_online": "4", "devices_offline": "1", "devices_new_24h": "1", "open_ports": "17", "events_24h": "6",
         "uptime_24h": "99.5", "devices_unknown": "2", "plugin_updates": "2", "wifi_clients": "3", "wifi_weak": "1", "services_down": "1", "last_scan_duration": "35", "last_scan_hosts": "31", "problems": "0", "version": "0.2.40",
+        "devices_flapping": "1",
     }
     for key, value in expected.items():
         assert state(hass, entry, "sensor", key).state == value, key
     assert state(hass, entry, "sensor", "last_scan").state == "2026-10-08T11:58:00+00:00"
     assert state(hass, entry, "binary_sensor", "problem").state == "off"
     assert state(hass, entry, "binary_sensor", "scan_running").state == "off"
+    assert state(hass, entry, "sensor", "last_backup").state == "2026-10-08T03:00:00+00:00"
+    assert state(hass, entry, "binary_sensor", "backup_problem").state == "off"
 
 
 async def test_less_useful_sensors_start_disabled(hass, mock_netlens):
     entry = make_entry()
     await setup(hass, entry)
     registry = er.async_get(hass)
-    for key in ("devices_stale", "uptime_7d", "last_scan_age"):
+    for key in ("devices_stale", "uptime_7d", "last_scan_age", "devices_unknown_type", "devices_private_address", "dhcp_servers"):
         reg = registry.async_get(registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_{key}"))
         assert reg.disabled_by is er.RegistryEntryDisabler.INTEGRATION, key
+    reg = registry.async_get(registry.async_get_entity_id("binary_sensor", DOMAIN, f"{entry.entry_id}_passive_listening"))
+    assert reg.disabled_by is er.RegistryEntryDisabler.INTEGRATION
 
 
 async def test_hub_device_and_one_request_per_poll(hass, mock_netlens, freezer):
@@ -135,3 +140,44 @@ async def test_update_entity_with_an_older_netlens(hass, mock_netlens, summary):
     await setup(hass, entry)
     up = state(hass, entry, "update", "update")
     assert up.state == "off" and up.attributes["installed_version"] == "0.2.40"  # nothing newer is claimed
+
+
+async def test_backup_and_flapping_follow_the_next_poll(hass, mock_netlens, summary, freezer):
+    entry = make_entry()
+    await setup(hass, entry)
+    summary["backup"].update(last_ok=False, last_error="disk full", last_at="2026-10-08T12:30:00Z")
+    summary["devices"]["flapping"] = 4
+    summary["problems"], summary["problem"] = 1, True
+    await poll(hass, freezer)
+    backup = state(hass, entry, "binary_sensor", "backup_problem")
+    assert backup.state == "on" and backup.attributes["error"] == "disk full"
+    assert state(hass, entry, "sensor", "devices_flapping").state == "4"
+    assert state(hass, entry, "binary_sensor", "problem").attributes["backup_failed"] is True
+
+
+async def test_enabled_extra_sensors_show_the_identification_numbers(hass, mock_netlens):
+    entry = make_entry()
+    registry = er.async_get(hass)
+    entry.add_to_hass(hass)
+    for key in ("devices_unknown_type", "devices_private_address", "dhcp_servers"):
+        registry.async_get_or_create("sensor", DOMAIN, f"{entry.entry_id}_{key}", config_entry=entry, disabled_by=None)
+    registry.async_get_or_create("binary_sensor", DOMAIN, f"{entry.entry_id}_passive_listening", config_entry=entry, disabled_by=None)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert state(hass, entry, "sensor", "devices_unknown_type").state == "3"
+    assert state(hass, entry, "sensor", "devices_private_address").state == "2"
+    assert state(hass, entry, "sensor", "dhcp_servers").state == "1"
+    passive = state(hass, entry, "binary_sensor", "passive_listening")
+    assert passive.state == "on" and passive.attributes["devices_updated"] == 7
+
+
+async def test_a_netlens_without_these_fields_gives_unknown_not_errors(hass, mock_netlens, summary):
+    for key in ("identification", "backup", "netchecks", "passive"):
+        summary.pop(key)
+    summary["devices"].pop("flapping")
+    entry = make_entry()
+    await setup(hass, entry)
+    assert state(hass, entry, "sensor", "devices_flapping").state == "unknown"
+    assert state(hass, entry, "sensor", "last_backup").state == "unknown"
+    assert state(hass, entry, "binary_sensor", "backup_problem").state == "unknown"
+    assert state(hass, entry, "binary_sensor", "problem").attributes["backup_failed"] is False
