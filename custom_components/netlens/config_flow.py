@@ -83,6 +83,31 @@ class NetlensConfigFlow(ConfigFlow, domain=DOMAIN):
         schema = vol.Schema({vol.Required(CONF_TOKEN): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD))})
         return self.async_show_form(step_id="reauth_confirm", data_schema=schema, errors=errors, description_placeholders={"url": entry.data[CONF_URL]})
 
+    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Change the address or the token of an existing entry (entities, names and automations stay)."""
+        entry = self._get_reconfigure_entry()
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            token = user_input.get(CONF_TOKEN) or entry.data[CONF_TOKEN]  # empty = keep the current token
+            errors, _ = await self._check(user_input[CONF_URL], token, user_input[CONF_VERIFY_SSL])
+            if not errors:
+                url = normalize_url(user_input[CONF_URL])
+                if any(o.entry_id != entry.entry_id and (o.unique_id or "").lower() == url.lower() for o in self._async_current_entries()):
+                    return self.async_abort(reason="already_configured")  # another entry already uses that address
+                return self.async_update_reload_and_abort(
+                    entry,
+                    unique_id=url.lower(),
+                    title=f"Netlens ({url.split('://', 1)[1]})",
+                    data_updates={CONF_URL: url, CONF_TOKEN: token, CONF_VERIFY_SSL: user_input[CONF_VERIFY_SSL]},
+                )
+        current = user_input or entry.data
+        schema = vol.Schema({
+            vol.Required(CONF_URL, default=current.get(CONF_URL, "")): selector.TextSelector(),
+            vol.Optional(CONF_TOKEN): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)),
+            vol.Required(CONF_VERIFY_SSL, default=current.get(CONF_VERIFY_SSL, True)): selector.BooleanSelector(),
+        })
+        return self.async_show_form(step_id="reconfigure", data_schema=schema, errors=errors)
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:

@@ -39,7 +39,7 @@ Copy the folder `custom_components/netlens` of this repository into the `custom_
 | Access token | the Netlens token, or (better, Netlens 0.2.50 and later) an **API token of a read-only viewer user**: create the user and token under *Settings → Users & tokens* in Netlens, so Home Assistant can look but never change anything |
 | Verify the TLS certificate | only matters for `https` (for example behind a reverse proxy with a self-signed certificate) |
 
-If Netlens later refuses the token, Home Assistant asks for a new one (re-authentication).
+If Netlens later refuses the token, Home Assistant asks for a new one (re-authentication). To change the token or the address on purpose, open the integration (Settings → Devices & services → Netlens), the three-dot menu of the entry, and choose **Reconfigure**: leave the token empty to keep the current one. Entities, names and automations stay.
 
 ### Options
 

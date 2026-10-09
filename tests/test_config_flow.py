@@ -90,3 +90,49 @@ async def test_options_flow_lists_devices_and_saves(hass, mock_netlens):
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert entry.options == {CONF_SCAN_INTERVAL: 120, CONF_TRACK_EVENTS: False, CONF_DEVICES: ["aa:00:00:00:00:03"]}
+
+
+async def test_reconfigure_changes_the_token_and_keeps_it_when_left_empty(hass, aioclient_mock, summary):
+    aioclient_mock.get(f"{URL}/api/stats/summary", json=summary)
+    entry = make_entry()
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    result = await entry.start_reconfigure_flow(hass)
+    assert result["type"] is FlowResultType.FORM and result["step_id"] == "reconfigure"
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(f"{URL}/api/stats/summary", status=401)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_URL: URL, CONF_TOKEN: "nl_bad", CONF_VERIFY_SSL: True})
+    assert result["errors"] == {"base": "invalid_auth"} and entry.data[CONF_TOKEN] == TOKEN
+
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(f"{URL}/api/stats/summary", json=summary)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_URL: URL, CONF_TOKEN: "nl_fresh", CONF_VERIFY_SSL: True})
+    assert result["type"] is FlowResultType.ABORT and result["reason"] == "reconfigure_successful"
+    assert entry.data[CONF_TOKEN] == "nl_fresh"
+
+    result = await entry.start_reconfigure_flow(hass)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_URL: URL, CONF_VERIFY_SSL: True})
+    assert result["reason"] == "reconfigure_successful" and entry.data[CONF_TOKEN] == "nl_fresh"  # empty token = unchanged
+
+
+async def test_reconfigure_can_move_to_a_new_address_but_not_onto_another_entry(hass, aioclient_mock, summary):
+    new = "http://new-netlens.test:8080"
+    aioclient_mock.get(f"{URL}/api/stats/summary", json=summary)
+    aioclient_mock.get(f"{new}/api/stats/summary", json=summary)
+    entry = make_entry()
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    result = await entry.start_reconfigure_flow(hass)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_URL: "new-netlens.test:8080", CONF_VERIFY_SSL: True})
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.data[CONF_URL] == new and entry.unique_id == new and entry.title == "Netlens (new-netlens.test:8080)"
+
+    other = make_entry()
+    other.add_to_hass(hass)  # a second entry that owns the old address
+    result = await entry.start_reconfigure_flow(hass)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_URL: URL, CONF_VERIFY_SSL: True})
+    assert result["type"] is FlowResultType.ABORT and result["reason"] == "already_configured"

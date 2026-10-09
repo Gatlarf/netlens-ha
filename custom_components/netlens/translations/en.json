@@ -10,6 +10,15 @@
           "verify_ssl": "Verify the TLS certificate (only matters for https)"
         }
       },
+      "reconfigure": {
+        "title": "Change the Netlens connection",
+        "description": "Change the address or the token. Leave the token empty to keep the current one. Your entities, names and automations stay as they are.",
+        "data": {
+          "url": "Netlens URL",
+          "token": "New access token (empty = keep the current one)",
+          "verify_ssl": "Verify the TLS certificate (only matters for https)"
+        }
+      },
       "reauth_confirm": {
         "title": "Netlens needs a new token",
         "description": "The token for {url} was refused. Enter the current one.",
@@ -26,7 +35,8 @@
     },
     "abort": {
       "already_configured": "This Netlens is already set up.",
-      "reauth_successful": "The new token works."
+      "reauth_successful": "The new token works.",
+      "reconfigure_successful": "The connection was updated."
     }
   },
   "options": {
