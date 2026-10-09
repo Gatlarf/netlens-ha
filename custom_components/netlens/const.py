@@ -31,4 +31,6 @@ EVENT_MAP = {
     "port_missing": "netlens_port_missing",
     "port_closed": "netlens_port_closed",
     "backup_failed": "netlens_backup_failed",
+    "dhcp_rogue": "netlens_dhcp_rogue",
+    "gateway_changed": "netlens_gateway_changed",
 }

@@ -6,6 +6,7 @@ A [Home Assistant](https://www.home-assistant.io/) integration for **[Netlens](h
 
 - **Network statistics** as sensors: devices, online, offline, new devices, network uptime, open ports, events, last scan time/duration/hosts.
 - **Health**: a *Problem* sensor that turns on when the last scan failed, no scan finished for 3 hours, or a Netlens plugin (router/hypervisor connector) is failing; a *Scan running* sensor.
+- **Areas:** a tracked device gets its Netlens group (room, floor...) as its suggested area.
 - **Presence for the devices you choose**: one `connectivity` binary sensor per device, grouped as Home Assistant devices that **mirror the Netlens hierarchy** (a laptop below its mesh node, below the router).
 - **Events** for automations: new device, device offline/online, port opened, IP changed.
 
@@ -93,6 +94,8 @@ When *Fire events* is on, new entries of the Netlens event log are fired on the 
 | `netlens_port_unexpected` | a port outside the device's baseline opened (Netlens 0.2.50 and later) |
 | `netlens_port_missing` | a port from the device's baseline is gone |
 | `netlens_port_closed` | a port closed on a device without a baseline |
+| `netlens_dhcp_rogue` | a new, untrusted DHCP server answered on the network (Netlens 0.2.60 and later) |
+| `netlens_gateway_changed` | the MAC address behind the gateway changed (possible ARP spoofing or a replaced router) |
 | `netlens_backup_failed` | a scheduled Netlens backup failed (`detail` says why) |
 | `netlens_wifi_roamed` | a Wi-Fi device moved to another mesh node |
 | `netlens_ip_reused` | an IP address was taken over by another device |

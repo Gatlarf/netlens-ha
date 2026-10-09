@@ -41,6 +41,9 @@ async def test_device_registry_mirrors_the_hierarchy(hass, mock_netlens):
     assert node.via_device_id == router.id and laptop.via_device_id == node.id and printer.via_device_id == router.id
     assert laptop.name == "Laptop" and laptop.manufacturer == "Dell" and laptop.model == "pc"
     assert (dr.CONNECTION_NETWORK_MAC, LAPTOP) in laptop.connections and laptop.configuration_url.endswith("/#/device/3")
+    # the Netlens group becomes the area; a device without a group has none
+    from homeassistant.helpers import area_registry as ar
+    assert ar.async_get(hass).async_get_area(laptop.area_id).name == "Living room" and printer.area_id is None
 
 
 async def test_a_device_whose_parent_is_not_tracked_hangs_below_the_hub(hass, mock_netlens):

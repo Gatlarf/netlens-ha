@@ -37,7 +37,7 @@ SUMMARY = {
         {"id": 2, "name": "Mesh node", "ip": "192.168.0.59", "mac": "aa:00:00:00:00:02", "online": True, "type": "ap", "vendor": "ASUS",
          "last_seen": "2026-10-08T11:58:00Z", "parent_id": 1, "parent_name": "Router"},
         {"id": 3, "name": "Laptop", "ip": "192.168.0.50", "mac": "aa:00:00:00:00:03", "online": True, "type": "pc", "vendor": "Dell",
-         "last_seen": "2026-10-08T11:58:00Z", "parent_id": 2, "parent_name": "Mesh node"},
+         "last_seen": "2026-10-08T11:58:00Z", "parent_id": 2, "parent_name": "Mesh node", "group": "Living room"},
         {"id": 4, "name": "Printer", "ip": "192.168.0.60", "mac": None, "online": False, "type": "printer", "vendor": None,
          "last_seen": "2026-10-07T09:00:00Z", "parent_id": 1, "parent_name": "Router"},
         {"id": 5, "name": "NAS", "ip": "192.168.0.70", "mac": "aa:00:00:00:00:05", "online": True, "type": "nas", "vendor": "Synology",

@@ -17,6 +17,8 @@ EVENTS = [
     {"id": 48, "ts": "2026-10-08T12:01:40Z", "device_id": 5, "kind": "port_missing", "detail": "tcp/443 https"},
     {"id": 49, "ts": "2026-10-08T12:01:50Z", "device_id": 5, "kind": "port_closed", "detail": "tcp/8080"},
     {"id": 50, "ts": "2026-10-08T12:02:00Z", "device_id": None, "kind": "backup_failed", "detail": "disk full"},
+    {"id": 51, "ts": "2026-10-08T12:02:10Z", "device_id": None, "kind": "dhcp_rogue", "detail": "A new DHCP server answered: 192.168.0.99"},
+    {"id": 52, "ts": "2026-10-08T12:02:20Z", "device_id": 1, "kind": "gateway_changed", "detail": "The MAC address behind the gateway changed"},
 ]
 
 
@@ -30,12 +32,13 @@ async def test_new_netlens_events_become_home_assistant_events(hass, mock_netlen
     await setup(hass, entry)
     assert not (new_device or offline or port or svc_down or roamed)  # the first poll only remembers where it is
 
-    extra = {k: async_capture_events(hass, f"netlens_{k}") for k in ("port_unexpected", "port_missing", "port_closed", "backup_failed")}
-    summary["events"]["last_id"] = 50
+    extra = {k: async_capture_events(hass, f"netlens_{k}") for k in ("port_unexpected", "port_missing", "port_closed", "backup_failed", "dhcp_rogue", "gateway_changed")}
+    summary["events"]["last_id"] = 52
     mock_netlens.get(f"{URL}/api/events", json=EVENTS)
     await poll(hass, freezer)
     assert [e.data["detail"] for e in extra["port_unexpected"]] == ["tcp/23 telnet"] and [e.data["detail"] for e in extra["port_missing"]] == ["tcp/443 https"]
     assert len(extra["port_closed"]) == 1 and extra["backup_failed"][0].data["detail"] == "disk full" and extra["backup_failed"][0].data["device_name"] is None
+    assert "192.168.0.99" in extra["dhcp_rogue"][0].data["detail"] and extra["gateway_changed"][0].data["device_name"] == "Router"
     assert [e.data["event_id"] for e in offline] == [41] and offline[0].data["device_name"] == "Laptop" and offline[0].data["mac"] == "aa:00:00:00:00:03"
     assert new_device[0].data["detail"] == "192.168.0.60 Acme" and new_device[0].data["ip"] == "192.168.0.60"
     assert port[0].data["entry_id"] == entry.entry_id and port[0].data["time"] == "2026-10-08T12:01:00Z"

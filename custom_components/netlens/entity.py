@@ -56,6 +56,8 @@ def device_info_for(entry: ConfigEntry, coordinator: NetlensCoordinator, key: st
         via_device=via,
         configuration_url=f"{coordinator.api.url}/#/device/{device['id']}",
     )
+    if device.get("group"):  # the Netlens group (room, floor...) becomes the suggested area; the user can still change it
+        info["suggested_area"] = device["group"]
     if device.get("mac"):
         info["connections"] = {(CONNECTION_NETWORK_MAC, device["mac"])}
     return info
