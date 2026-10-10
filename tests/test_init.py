@@ -192,3 +192,15 @@ async def test_dns_sensors_when_enabled(hass, mock_netlens):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert state(hass, entry, "sensor", "dns_pending").state == "2" and state(hass, entry, "sensor", "dns_conflicts").state == "1"
+
+
+async def test_container_sensors_when_enabled(hass, mock_netlens):
+    entry = make_entry()
+    registry = er.async_get(hass)
+    entry.add_to_hass(hass)
+    for key in ("containers_running", "containers_unhealthy", "containers_restarting"):
+        registry.async_get_or_create("sensor", DOMAIN, f"{entry.entry_id}_{key}", config_entry=entry, disabled_by=None)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert state(hass, entry, "sensor", "containers_running").state == "7"
+    assert state(hass, entry, "sensor", "containers_unhealthy").state == "2" and state(hass, entry, "sensor", "containers_restarting").state == "1"

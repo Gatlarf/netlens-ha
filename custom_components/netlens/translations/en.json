@@ -140,6 +140,15 @@
       },
       "dns_conflicts": {
         "name": "DNS conflicts"
+      },
+      "containers_running": {
+        "name": "Containers running"
+      },
+      "containers_unhealthy": {
+        "name": "Unhealthy containers"
+      },
+      "containers_restarting": {
+        "name": "Restarting containers"
       }
     },
     "binary_sensor": {
