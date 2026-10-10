@@ -20,6 +20,7 @@ SUMMARY = {
     "backup": {"enabled": True, "last_at": "2026-10-08T03:00:00Z", "last_ok": True, "last_error": None, "age_s": 32000},
     "netchecks": {"enabled": True, "dhcp_servers": 1, "untrusted": 0, "last_run": "2026-10-08T00:00:00Z", "last_ok": True},
     "dns": {"registered": 12, "pending": 2, "conflicts": 1, "registers_itself": 5, "waiting": 0},
+    "guests": {"total": 14, "running": 11, "stopped": 3, "hosts": 3, "by_kind": {"vm": {"total": 4, "running": 3}}, "update_available": 2, "old_images": 1},
     "containers": {"total": 9, "running": 7, "stopped": 1, "restarting": 1, "unhealthy": 2, "exposed": 3, "hosts": 2},
     "passive": {"enabled": True, "running": True, "frames": 40, "applied": 7},
     "wifi": {"clients": 3, "weak": 1, "avg_rssi": -66},

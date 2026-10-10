@@ -141,6 +141,12 @@
       "dns_conflicts": {
         "name": "DNS conflicts"
       },
+      "guests_running": {
+        "name": "Guests running"
+      },
+      "guests_update_available": {
+        "name": "Guest updates available"
+      },
       "containers_running": {
         "name": "Containers running"
       },
