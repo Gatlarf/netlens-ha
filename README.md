@@ -78,7 +78,7 @@ All of these belong to the **Netlens** device.
 | Problem | binary sensor (*problem*); attributes list the failing plugins and the scan failures of the last 24 h |
 | Scan running | binary sensor (*running*) |
 | Backup problem | binary sensor (*problem*, diagnostic): on when the last scheduled backup failed; the *Problem* sensor counts it too (attribute `backup_failed`) |
-| *Devices not seen for 30 days*, *Network uptime (7 days)*, *Time since last good scan*, *Average Wi-Fi signal*, *Service checks*, *Devices of unknown type*, *Devices with a private address*, *DHCP servers*, *Passive listening* (binary sensor: Netlens is listening to DHCP / mDNS / UPnP announcements) | disabled by default; enable them in the entity list |
+| *Devices not seen for 30 days*, *Network uptime (7 days)*, *Time since last good scan*, *Average Wi-Fi signal*, *Service checks*, *Devices of unknown type*, *Devices with a private address*, *DHCP servers*, *DNS records to write*, *DNS conflicts* (the DNS registration of Netlens), *Passive listening* (binary sensor: Netlens is listening to DHCP / mDNS / UPnP announcements) | disabled by default; enable them in the entity list |
 
 For each **tracked device**: a binary sensor named after the device (*connectivity*: on = online). Attributes: `ip`, `mac`, `vendor`, `type`, `parent_name`, `last_seen`, `trusted`. The Home Assistant device carries the vendor, type and MAC address, links to the device page in Netlens, and sits below its parent when the parent is tracked as well (otherwise below the Netlens hub). Renames in Netlens are followed. A device deleted in Netlens becomes *unavailable*.
 

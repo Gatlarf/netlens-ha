@@ -134,6 +134,12 @@
       },
       "last_backup": {
         "name": "Last backup"
+      },
+      "dns_pending": {
+        "name": "DNS records to write"
+      },
+      "dns_conflicts": {
+        "name": "DNS conflicts"
       }
     },
     "binary_sensor": {

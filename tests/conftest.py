@@ -19,6 +19,7 @@ SUMMARY = {
     "identification": {"unknown_type": 3, "private_mac": 2, "no_vendor": 1, "manual_type": 0, "gentle": 1, "nameless": 2, "no_os": 4},
     "backup": {"enabled": True, "last_at": "2026-10-08T03:00:00Z", "last_ok": True, "last_error": None, "age_s": 32000},
     "netchecks": {"enabled": True, "dhcp_servers": 1, "untrusted": 0, "last_run": "2026-10-08T00:00:00Z", "last_ok": True},
+    "dns": {"registered": 12, "pending": 2, "conflicts": 1, "registers_itself": 5, "waiting": 0},
     "passive": {"enabled": True, "running": True, "frames": 40, "applied": 7},
     "wifi": {"clients": 3, "weak": 1, "avg_rssi": -66},
     "services": {"total": 4, "up": 3, "down": 1},

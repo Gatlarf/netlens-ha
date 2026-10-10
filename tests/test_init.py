@@ -181,3 +181,14 @@ async def test_a_netlens_without_these_fields_gives_unknown_not_errors(hass, moc
     assert state(hass, entry, "sensor", "last_backup").state == "unknown"
     assert state(hass, entry, "binary_sensor", "backup_problem").state == "unknown"
     assert state(hass, entry, "binary_sensor", "problem").attributes["backup_failed"] is False
+
+
+async def test_dns_sensors_when_enabled(hass, mock_netlens):
+    entry = make_entry()
+    registry = er.async_get(hass)
+    entry.add_to_hass(hass)
+    for key in ("dns_pending", "dns_conflicts"):
+        registry.async_get_or_create("sensor", DOMAIN, f"{entry.entry_id}_{key}", config_entry=entry, disabled_by=None)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert state(hass, entry, "sensor", "dns_pending").state == "2" and state(hass, entry, "sensor", "dns_conflicts").state == "1"
