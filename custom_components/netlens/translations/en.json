@@ -47,6 +47,7 @@
         "data": {
           "scan_interval": "Poll interval (seconds)",
           "track_events": "Fire Home Assistant events for new devices, devices going offline and so on",
+          "skip_maintenance": "Skip events from devices inside a Netlens maintenance window",
           "devices": "Devices to track"
         }
       }
@@ -147,6 +148,24 @@
       "guests_update_available": {
         "name": "Guest updates available"
       },
+      "containers_image_updates": {
+        "name": "Containers with a newer image"
+      },
+      "sites_total": {
+        "name": "Reverse proxy sites"
+      },
+      "sites_down": {
+        "name": "Reverse proxy sites down"
+      },
+      "sites_unmatched": {
+        "name": "Reverse proxy sites without a device"
+      },
+      "certificates_expiring": {
+        "name": "Certificates expiring soon"
+      },
+      "certificate_days_left": {
+        "name": "Days until the next certificate ends"
+      },
       "containers_running": {
         "name": "Containers running"
       },
@@ -169,6 +188,9 @@
       },
       "passive_listening": {
         "name": "Passive listening"
+      },
+      "certificate_problem": {
+        "name": "Certificate problem"
       }
     },
     "update": {

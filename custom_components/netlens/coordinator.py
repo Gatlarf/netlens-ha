@@ -12,7 +12,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import NetlensApi, NetlensApiVersionError, NetlensAuthError, NetlensConnectionError, NetlensError
-from .const import CONF_SCAN_INTERVAL, CONF_TRACK_EVENTS, DEFAULT_SCAN_INTERVAL, DOMAIN, EVENT_MAP
+from .const import CONF_SCAN_INTERVAL, CONF_SKIP_MAINTENANCE, CONF_TRACK_EVENTS, DEFAULT_SCAN_INTERVAL, DOMAIN, EVENT_MAP
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -70,6 +70,8 @@ class NetlensCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             name = EVENT_MAP.get(event.get("kind"))
             if name is None:
                 continue
+            if event.get("maintenance") and self.config_entry.options.get(CONF_SKIP_MAINTENANCE, True):
+                continue  # Netlens held this one back too: a device in a maintenance window going offline is expected
             device = by_id.get(event.get("device_id")) or {}
             self.hass.bus.async_fire(
                 name,
@@ -78,6 +80,7 @@ class NetlensCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     "event_id": event["id"],
                     "time": event.get("ts"),
                     "detail": event.get("detail"),
+                    "maintenance": event.get("maintenance"),
                     "device_id": event.get("device_id"),
                     "device_name": device.get("name"),
                     "ip": device.get("ip"),

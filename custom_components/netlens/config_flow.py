@@ -14,7 +14,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import NetlensApi, NetlensApiVersionError, NetlensAuthError, NetlensConnectionError, normalize_url
 from .const import (
     CONF_DEVICES,
-    CONF_SCAN_INTERVAL,
+    CONF_SCAN_INTERVAL, CONF_SKIP_MAINTENANCE,
     CONF_TOKEN,
     CONF_TRACK_EVENTS,
     CONF_URL,
@@ -134,6 +134,7 @@ class NetlensOptionsFlow(OptionsFlow):
                 selector.NumberSelectorConfig(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL, step=1, unit_of_measurement="s", mode=selector.NumberSelectorMode.BOX)
             ),
             vol.Required(CONF_TRACK_EVENTS, default=current.get(CONF_TRACK_EVENTS, True)): selector.BooleanSelector(),
+            vol.Required(CONF_SKIP_MAINTENANCE, default=current.get(CONF_SKIP_MAINTENANCE, True)): selector.BooleanSelector(),
             vol.Optional(CONF_DEVICES, default=current.get(CONF_DEVICES, [])): selector.SelectSelector(
                 selector.SelectSelectorConfig(options=options, multiple=True, mode=selector.SelectSelectorMode.DROPDOWN)
             ),

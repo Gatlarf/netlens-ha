@@ -2,7 +2,7 @@ from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResultType
 
 from custom_components.netlens.api import NetlensAuthError, NetlensConnectionError
-from custom_components.netlens.const import CONF_DEVICES, CONF_SCAN_INTERVAL, CONF_TOKEN, CONF_TRACK_EVENTS, CONF_URL, CONF_VERIFY_SSL, DOMAIN
+from custom_components.netlens.const import CONF_DEVICES, CONF_SCAN_INTERVAL, CONF_SKIP_MAINTENANCE, CONF_TOKEN, CONF_TRACK_EVENTS, CONF_URL, CONF_VERIFY_SSL, DOMAIN
 from .conftest import TOKEN, URL, make_entry
 
 USER = {CONF_URL: "netlens.test:8080", CONF_TOKEN: TOKEN, CONF_VERIFY_SSL: True}
@@ -89,7 +89,7 @@ async def test_options_flow_lists_devices_and_saves(hass, mock_netlens):
         result["flow_id"], {CONF_SCAN_INTERVAL: 120, CONF_TRACK_EVENTS: False, CONF_DEVICES: ["aa:00:00:00:00:03"]}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert entry.options == {CONF_SCAN_INTERVAL: 120, CONF_TRACK_EVENTS: False, CONF_DEVICES: ["aa:00:00:00:00:03"]}
+    assert entry.options == {CONF_SCAN_INTERVAL: 120, CONF_TRACK_EVENTS: False, CONF_SKIP_MAINTENANCE: True, CONF_DEVICES: ["aa:00:00:00:00:03"]}
 
 
 async def test_reconfigure_changes_the_token_and_keeps_it_when_left_empty(hass, aioclient_mock, summary):

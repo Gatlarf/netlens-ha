@@ -19,7 +19,7 @@ from .entity import NetlensDeviceEntity, NetlensHubEntity, tracked_keys
 
 async def async_setup_entry(hass: HomeAssistant, entry: NetlensConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = entry.runtime_data
-    async_add_entities([NetlensProblemSensor(coordinator, entry), NetlensScanRunningSensor(coordinator, entry), NetlensBackupProblemSensor(coordinator, entry), NetlensPassiveSensor(coordinator, entry)])
+    async_add_entities([NetlensProblemSensor(coordinator, entry), NetlensScanRunningSensor(coordinator, entry), NetlensBackupProblemSensor(coordinator, entry), NetlensPassiveSensor(coordinator, entry), NetlensCertificateSensor(coordinator, entry)])
 
     added: set[str] = set()
 
@@ -92,6 +92,32 @@ class NetlensBackupProblemSensor(NetlensHubEntity, BinarySensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         backup = self.coordinator.data.get("backup") or {}
         return {"enabled": backup.get("enabled"), "last_at": backup.get("last_at"), "error": backup.get("last_error")}
+
+
+class NetlensCertificateSensor(NetlensHubEntity, BinarySensorEntity):
+    """On when a certificate used by a reverse proxy site ends within 14 days or has ended. Unknown without reverse proxy sites."""
+
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_translation_key = "certificate_problem"
+
+    def __init__(self, coordinator, entry) -> None:
+        super().__init__(coordinator, entry, "certificate_problem")
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return bool((self.coordinator.data.get("sites") or {}).get("certificates"))
+
+    @property
+    def is_on(self) -> bool | None:
+        sites = self.coordinator.data.get("sites") or {}
+        if not sites.get("certificates"):
+            return None
+        return bool(sites.get("certificates_expiring") or sites.get("certificates_expired"))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        sites = self.coordinator.data.get("sites") or {}
+        return {k: sites.get(k) for k in ("certificates", "certificates_expiring", "certificates_expired", "next_expiry_days", "total", "down", "unmatched")}
 
 
 class NetlensPassiveSensor(NetlensHubEntity, BinarySensorEntity):

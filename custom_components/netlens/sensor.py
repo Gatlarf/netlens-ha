@@ -42,6 +42,7 @@ def _timestamp(value: str | None) -> datetime | None:
 @dataclass(frozen=True, kw_only=True)
 class NetlensSensorDescription(SensorEntityDescription):
     value_fn: Callable[[dict[str, Any]], Any]
+    needs_data: str | None = None  # enabled from the start only when this block of the summary has something in it (for example "sites")
 
 
 SENSORS: tuple[NetlensSensorDescription, ...] = (
@@ -81,6 +82,19 @@ SENSORS: tuple[NetlensSensorDescription, ...] = (
                              native_unit_of_measurement="guests", entity_registry_enabled_default=False, value_fn=lambda d: _dig(d, "guests", "running")),
     NetlensSensorDescription(key="guests_update_available", translation_key="guests_update_available", icon="mdi:package-up", state_class=SensorStateClass.MEASUREMENT,
                              native_unit_of_measurement="guests", entity_registry_enabled_default=False, value_fn=lambda d: _dig(d, "guests", "update_available")),
+    NetlensSensorDescription(key="containers_image_updates", translation_key="containers_image_updates", icon="mdi:package-up", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="containers", entity_registry_enabled_default=False, value_fn=lambda d: _dig(d, "guests", "image_updates")),
+    NetlensSensorDescription(key="sites_total", translation_key="sites_total", icon="mdi:web", state_class=SensorStateClass.MEASUREMENT, native_unit_of_measurement="sites",
+                             entity_registry_enabled_default=False, needs_data="sites", value_fn=lambda d: _dig(d, "sites", "enabled")),
+    NetlensSensorDescription(key="sites_down", translation_key="sites_down", icon="mdi:web-off", state_class=SensorStateClass.MEASUREMENT, native_unit_of_measurement="sites",
+                             needs_data="sites", value_fn=lambda d: _dig(d, "sites", "down")),
+    NetlensSensorDescription(key="sites_unmatched", translation_key="sites_unmatched", icon="mdi:help-network-outline", state_class=SensorStateClass.MEASUREMENT, native_unit_of_measurement="sites",
+                             entity_registry_enabled_default=False, needs_data="sites", value_fn=lambda d: _dig(d, "sites", "unmatched")),
+    NetlensSensorDescription(key="certificates_expiring", translation_key="certificates_expiring", icon="mdi:certificate-outline", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="certificates", needs_data="sites", value_fn=lambda d: _dig(d, "sites", "certificates_expiring")),
+    NetlensSensorDescription(key="certificate_days_left", translation_key="certificate_days_left", icon="mdi:certificate", device_class=SensorDeviceClass.DURATION,
+                             native_unit_of_measurement=UnitOfTime.DAYS, state_class=SensorStateClass.MEASUREMENT, needs_data="sites",
+                             value_fn=lambda d: _dig(d, "sites", "next_expiry_days")),
     NetlensSensorDescription(key="wifi_clients", translation_key="wifi_clients", icon="mdi:wifi", state_class=SensorStateClass.MEASUREMENT,
                              native_unit_of_measurement="devices", value_fn=lambda d: _dig(d, "wifi", "clients")),
     NetlensSensorDescription(key="wifi_weak", translation_key="wifi_weak", icon="mdi:wifi-strength-1-alert", state_class=SensorStateClass.MEASUREMENT,
@@ -130,6 +144,13 @@ class NetlensSensor(NetlensHubEntity, SensorEntity):
     def __init__(self, coordinator, entry, description: NetlensSensorDescription) -> None:
         super().__init__(coordinator, entry, description.key)
         self.entity_description = description
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        needs = self.entity_description.needs_data
+        if needs is None:
+            return super().entity_registry_enabled_default
+        return bool(_dig(self.coordinator.data, needs, "total")) and self.entity_description.entity_registry_enabled_default
 
     @property
     def native_value(self) -> Any:

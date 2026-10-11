@@ -52,6 +52,7 @@ Open the integration → **Configure**:
 |---|---|
 | Poll interval | 30 to 3600 seconds (default 60) |
 | Fire events | turn the Home Assistant events below on or off (default on) |
+| Skip maintenance events | do not fire events that Netlens held back because the device was inside a maintenance window (default on). The event data still carries `maintenance` when you turn this off |
 | Devices to track | the Netlens devices that get their own presence sensor and device. **None by default**, because a network can have dozens of devices |
 
 Untracking a device removes its sensor and device again.
@@ -78,7 +79,8 @@ All of these belong to the **Netlens** device.
 | Problem | binary sensor (*problem*); attributes list the failing plugins and the scan failures of the last 24 h |
 | Scan running | binary sensor (*running*) |
 | Backup problem | binary sensor (*problem*, diagnostic): on when the last scheduled backup failed; the *Problem* sensor counts it too (attribute `backup_failed`) |
-| *Devices not seen for 30 days*, *Network uptime (7 days)*, *Time since last good scan*, *Average Wi-Fi signal*, *Service checks*, *Devices of unknown type*, *Devices with a private address*, *DHCP servers*, *DNS records to write*, *DNS conflicts* (the DNS registration of Netlens), *Containers running*, *Unhealthy containers*, *Restarting containers*, *Guests running*, *Guest updates available* (from the Proxmox, TrueNAS and Docker plugins), *Passive listening* (binary sensor: Netlens is listening to DHCP / mDNS / UPnP announcements) | disabled by default; enable them in the entity list |
+| *Reverse proxy sites down*, *Certificates expiring soon*, *Days until the next certificate ends*, and the *Certificate problem* binary sensor (on when a certificate ends within 14 days) | from the reverse proxy plugins of Netlens 0.3.119 and later (Nginx Proxy Manager); enabled from the start when Netlens has sites, otherwise disabled |
+| *Reverse proxy sites*, *Sites without a device*, *Containers with a newer image* (the Docker plugin's *Check for newer images*), *Devices not seen for 30 days*, *Network uptime (7 days)*, *Time since last good scan*, *Average Wi-Fi signal*, *Service checks*, *Devices of unknown type*, *Devices with a private address*, *DHCP servers*, *DNS records to write*, *DNS conflicts* (the DNS registration of Netlens), *Containers running*, *Unhealthy containers*, *Restarting containers*, *Guests running*, *Guest updates available* (from the Proxmox, TrueNAS and Docker plugins), *Passive listening* (binary sensor: Netlens is listening to DHCP / mDNS / UPnP announcements) | disabled by default; enable them in the entity list |
 
 For each **tracked device**: a binary sensor named after the device (*connectivity*: on = online). Attributes: `ip`, `mac`, `vendor`, `type`, `parent_name`, `last_seen`, `trusted`. The Home Assistant device carries the vendor, type and MAC address, links to the device page in Netlens, and sits below its parent when the parent is tracked as well (otherwise below the Netlens hub). Renames in Netlens are followed. A device deleted in Netlens becomes *unavailable*.
 
@@ -103,8 +105,12 @@ When *Fire events* is on, new entries of the Netlens event log are fired on the 
 | `netlens_wifi_roamed` | a Wi-Fi device moved to another mesh node |
 | `netlens_ip_reused` | an IP address was taken over by another device |
 | `netlens_ip_changed` | a device changed its IP address |
+| `netlens_certificate_expiring` | a certificate used by a reverse proxy site ends soon, or has ended (Netlens 0.3.116 and later; `detail` names it) |
+| `netlens_update_available` | an app, or the image of a container, has an update (the container check needs Netlens 0.3.119 and later) |
+| `netlens_container_unhealthy` / `netlens_container_restarting` / `netlens_container_stopped` | a container's health check fails / it keeps restarting / it stopped with an error |
+| `netlens_guest_stopped` / `netlens_guest_started` | a virtual machine, LXC container or app stopped / started |
 
-Event data: `entry_id`, `event_id`, `time`, `detail`, `device_id`, `device_name`, `ip`, `mac`.
+Event data: `entry_id`, `event_id`, `time`, `detail`, `maintenance`, `device_id`, `device_name`, `ip`, `mac`.
 
 ### Example automations
 
