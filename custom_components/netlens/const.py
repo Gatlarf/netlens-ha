@@ -41,4 +41,5 @@ EVENT_MAP = {
     "container_stopped": "netlens_container_stopped",
     "guest_stopped": "netlens_guest_stopped",
     "guest_started": "netlens_guest_started",
+    "login_failed": "netlens_login_failed",
 }

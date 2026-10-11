@@ -108,6 +108,7 @@ When *Fire events* is on, new entries of the Netlens event log are fired on the 
 | `netlens_certificate_expiring` | a certificate used by a reverse proxy site ends soon, or has ended (Netlens 0.3.116 and later; `detail` names it) |
 | `netlens_update_available` | an app, or the image of a container, has an update (the container check needs Netlens 0.3.119 and later) |
 | `netlens_container_unhealthy` / `netlens_container_restarting` / `netlens_container_stopped` | a container's health check fails / it keeps restarting / it stopped with an error |
+| `netlens_login_failed` | someone keeps entering a wrong password or token (Netlens 0.3.128 and later; `detail` names the address): a possible attack on a Netlens that is reachable from the internet |
 | `netlens_guest_stopped` / `netlens_guest_started` | a virtual machine, LXC container or app stopped / started |
 
 Event data: `entry_id`, `event_id`, `time`, `detail`, `maintenance`, `device_id`, `device_name`, `ip`, `mac`.

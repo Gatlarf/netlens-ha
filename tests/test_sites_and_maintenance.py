@@ -44,11 +44,11 @@ async def test_a_good_certificate_is_no_problem(hass, mock_netlens, summary):
 
 
 async def test_container_and_certificate_events_reach_home_assistant(hass, mock_netlens, summary, freezer):
-    names = ("certificate_expiring", "update_available", "container_unhealthy", "container_restarting", "container_stopped", "guest_stopped", "guest_started")
+    names = ("certificate_expiring", "update_available", "container_unhealthy", "container_restarting", "container_stopped", "guest_stopped", "guest_started", "login_failed")
     seen = {n: async_capture_events(hass, f"netlens_{n}") for n in names}
     entry = make_entry()
     await setup(hass, entry)
-    kinds = ["cert_expiring", "guest_update_available", "container_unhealthy", "container_restarting", "container_stopped", "guest_stopped", "guest_started"]
+    kinds = ["cert_expiring", "guest_update_available", "container_unhealthy", "container_restarting", "container_stopped", "guest_stopped", "guest_started", "login_failed"]
     summary["events"]["last_id"] = 40 + len(kinds)
     mock_netlens.get(f"{URL}/api/events", json=[{"id": 41 + i, "ts": "2026-10-08T12:00:00Z", "device_id": None, "kind": k, "detail": f"detail {k}"} for i, k in enumerate(kinds)])
     await poll(hass, freezer)
