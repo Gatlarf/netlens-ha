@@ -166,6 +166,21 @@
       "certificate_days_left": {
         "name": "Days until the next certificate ends"
       },
+      "speed_download": {
+        "name": "Internet download speed"
+      },
+      "speed_upload": {
+        "name": "Internet upload speed"
+      },
+      "speed_ping": {
+        "name": "Internet ping"
+      },
+      "speed_jitter": {
+        "name": "Internet jitter"
+      },
+      "speed_last_test": {
+        "name": "Last internet speed test"
+      },
       "containers_running": {
         "name": "Containers running"
       },

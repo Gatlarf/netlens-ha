@@ -13,7 +13,7 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTime
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfDataRate, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
@@ -72,6 +72,20 @@ SENSORS: tuple[NetlensSensorDescription, ...] = (
                              native_unit_of_measurement="devices", entity_registry_enabled_default=False, value_fn=lambda d: _dig(d, "dns", "pending")),
     NetlensSensorDescription(key="dns_conflicts", translation_key="dns_conflicts", icon="mdi:alert-circle-outline", state_class=SensorStateClass.MEASUREMENT,
                              native_unit_of_measurement="devices", entity_registry_enabled_default=False, value_fn=lambda d: _dig(d, "dns", "conflicts")),
+    NetlensSensorDescription(key="speed_download", translation_key="speed_download", icon="mdi:download-network", device_class=SensorDeviceClass.DATA_RATE,
+                             native_unit_of_measurement=UnitOfDataRate.MEGABITS_PER_SECOND, state_class=SensorStateClass.MEASUREMENT, suggested_display_precision=0,
+                             needs_data="speed", value_fn=lambda d: _dig(d, "speed", "internet", "down_mbps")),
+    NetlensSensorDescription(key="speed_upload", translation_key="speed_upload", icon="mdi:upload-network", device_class=SensorDeviceClass.DATA_RATE,
+                             native_unit_of_measurement=UnitOfDataRate.MEGABITS_PER_SECOND, state_class=SensorStateClass.MEASUREMENT, suggested_display_precision=0,
+                             needs_data="speed", value_fn=lambda d: _dig(d, "speed", "internet", "up_mbps")),
+    NetlensSensorDescription(key="speed_ping", translation_key="speed_ping", icon="mdi:timer-outline", device_class=SensorDeviceClass.DURATION,
+                             native_unit_of_measurement=UnitOfTime.MILLISECONDS, state_class=SensorStateClass.MEASUREMENT, suggested_display_precision=0,
+                             needs_data="speed", value_fn=lambda d: _dig(d, "speed", "internet", "latency_ms")),
+    NetlensSensorDescription(key="speed_jitter", translation_key="speed_jitter", icon="mdi:chart-bell-curve", device_class=SensorDeviceClass.DURATION,
+                             native_unit_of_measurement=UnitOfTime.MILLISECONDS, state_class=SensorStateClass.MEASUREMENT, suggested_display_precision=1,
+                             entity_registry_enabled_default=False, needs_data="speed", value_fn=lambda d: _dig(d, "speed", "internet", "jitter_ms")),
+    NetlensSensorDescription(key="speed_last_test", translation_key="speed_last_test", icon="mdi:speedometer", device_class=SensorDeviceClass.TIMESTAMP,
+                             entity_registry_enabled_default=False, needs_data="speed", value_fn=lambda d: _timestamp(_dig(d, "speed", "internet", "ts"))),
     NetlensSensorDescription(key="containers_running", translation_key="containers_running", icon="mdi:docker", state_class=SensorStateClass.MEASUREMENT,
                              native_unit_of_measurement="containers", entity_registry_enabled_default=False, value_fn=lambda d: _dig(d, "containers", "running")),
     NetlensSensorDescription(key="containers_unhealthy", translation_key="containers_unhealthy", icon="mdi:docker", state_class=SensorStateClass.MEASUREMENT,
