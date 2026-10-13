@@ -126,6 +126,13 @@ SENSORS: tuple[NetlensSensorDescription, ...] = (
     NetlensSensorDescription(key="uptime_7d", translation_key="uptime_7d", icon="mdi:chart-line", state_class=SensorStateClass.MEASUREMENT,
                              native_unit_of_measurement=PERCENTAGE, suggested_display_precision=1, entity_registry_enabled_default=False,
                              value_fn=lambda d: d["uptime"]["7d"]),
+    NetlensSensorDescription(key="core_uptime_24h", translation_key="core_uptime_24h", icon="mdi:chart-line-variant", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement=PERCENTAGE, suggested_display_precision=1, needs_data="core", value_fn=lambda d: _dig(d, "core", "uptime", "24h")),
+    NetlensSensorDescription(key="core_uptime_7d", translation_key="core_uptime_7d", icon="mdi:chart-line-variant", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement=PERCENTAGE, suggested_display_precision=1, entity_registry_enabled_default=False, needs_data="core",
+                             value_fn=lambda d: _dig(d, "core", "uptime", "7d")),
+    NetlensSensorDescription(key="core_devices_online", translation_key="core_devices_online", icon="mdi:server-network", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="devices", needs_data="core", value_fn=lambda d: _dig(d, "core", "online")),
     NetlensSensorDescription(key="open_ports", translation_key="open_ports", icon="mdi:ethernet", state_class=SensorStateClass.MEASUREMENT,
                              native_unit_of_measurement="ports", value_fn=lambda d: d["ports"]["open"]),
     NetlensSensorDescription(key="events_24h", translation_key="events_24h", icon="mdi:bell-ring-outline", state_class=SensorStateClass.MEASUREMENT,
@@ -164,7 +171,7 @@ class NetlensSensor(NetlensHubEntity, SensorEntity):
         needs = self.entity_description.needs_data
         if needs is None:
             return super().entity_registry_enabled_default
-        return bool(_dig(self.coordinator.data, needs, "total")) and self.entity_description.entity_registry_enabled_default
+        return bool(_dig(self.coordinator.data, needs, "total") or _dig(self.coordinator.data, needs, "devices")) and self.entity_description.entity_registry_enabled_default
 
     @property
     def native_value(self) -> Any:

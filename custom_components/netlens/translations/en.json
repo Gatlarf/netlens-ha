@@ -76,6 +76,15 @@
       "uptime_7d": {
         "name": "Network uptime (7 days)"
       },
+      "core_uptime_24h": {
+        "name": "Always-on devices uptime (24 h)"
+      },
+      "core_uptime_7d": {
+        "name": "Always-on devices uptime (7 days)"
+      },
+      "core_devices_online": {
+        "name": "Always-on devices online"
+      },
       "open_ports": {
         "name": "Open ports"
       },
