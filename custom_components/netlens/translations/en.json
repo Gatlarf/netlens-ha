@@ -198,6 +198,53 @@
       },
       "containers_restarting": {
         "name": "Restarting containers"
+      },
+      "health_monitored": {
+        "name": "Devices with health monitoring"
+      },
+      "health_warning": {
+        "name": "Devices with a health warning"
+      },
+      "health_critical": {
+        "name": "Devices with a critical health reading"
+      },
+      "health_unreadable": {
+        "name": "Devices whose health cannot be read"
+      },
+      "disk_days_to_full": {
+        "name": "Days until the first disk is full"
+      },
+      "remote_sites_total": {
+        "name": "Remote sites"
+      },
+      "remote_sites_silent": {
+        "name": "Remote sites not reporting"
+      },
+      "remote_sites_problems": {
+        "name": "Remote site problems"
+      },
+      "device_health": {
+        "name": "Health",
+        "state": {
+          "ok": "OK",
+          "warning": "Warning",
+          "critical": "Critical"
+        }
+      },
+      "device_cpu": {
+        "name": "Processor"
+      },
+      "device_memory": {
+        "name": "Memory in use"
+      },
+      "device_disk": {
+        "name": "Fullest disk"
+      },
+      "device_temperature": {
+        "name": "Temperature"
+      },
+      "device_battery": {
+        "name": "UPS battery"
       }
     },
     "binary_sensor": {
@@ -215,6 +262,12 @@
       },
       "certificate_problem": {
         "name": "Certificate problem"
+      },
+      "health_problem": {
+        "name": "Health problem"
+      },
+      "remote_site_problem": {
+        "name": "Remote site problem"
       }
     },
     "update": {

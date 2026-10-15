@@ -24,7 +24,7 @@ def _remove_untracked(hass: HomeAssistant, entry: NetlensConfigEntry) -> None:
     prefix = f"{entry.entry_id}_dev_"
     entities = er.async_get(hass)
     for entity in er.async_entries_for_config_entry(entities, entry.entry_id):
-        if entity.unique_id.startswith(prefix) and entity.unique_id[len(prefix):] not in tracked:
+        if entity.unique_id.startswith(prefix) and entity.unique_id[len(prefix):].split("|")[0] not in tracked:
             entities.async_remove(entity.entity_id)
     devices = dr.async_get(hass)
     device_prefix = f"{entry.entry_id}_"

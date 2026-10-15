@@ -19,7 +19,7 @@ from .entity import NetlensDeviceEntity, NetlensHubEntity, tracked_keys
 
 async def async_setup_entry(hass: HomeAssistant, entry: NetlensConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = entry.runtime_data
-    async_add_entities([NetlensProblemSensor(coordinator, entry), NetlensScanRunningSensor(coordinator, entry), NetlensBackupProblemSensor(coordinator, entry), NetlensPassiveSensor(coordinator, entry), NetlensCertificateSensor(coordinator, entry)])
+    async_add_entities([NetlensProblemSensor(coordinator, entry), NetlensScanRunningSensor(coordinator, entry), NetlensBackupProblemSensor(coordinator, entry), NetlensPassiveSensor(coordinator, entry), NetlensCertificateSensor(coordinator, entry), NetlensHealthProblemSensor(coordinator, entry), NetlensRemoteSiteProblemSensor(coordinator, entry)])
 
     added: set[str] = set()
 
@@ -118,6 +118,59 @@ class NetlensCertificateSensor(NetlensHubEntity, BinarySensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         sites = self.coordinator.data.get("sites") or {}
         return {k: sites.get(k) for k in ("certificates", "certificates_expiring", "certificates_expired", "next_expiry_days", "total", "down", "unmatched")}
+
+
+class NetlensHealthProblemSensor(NetlensHubEntity, BinarySensorEntity):
+    """On when a monitored device has a reading past a limit (processor, memory, disk, temperature, UPS, supplies) or a disk will be full within two weeks."""
+
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_translation_key = "health_problem"
+
+    def __init__(self, coordinator, entry) -> None:
+        super().__init__(coordinator, entry, "health_problem")
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return bool((self.coordinator.data.get("health") or {}).get("monitored"))
+
+    @property
+    def is_on(self) -> bool | None:
+        health = self.coordinator.data.get("health")
+        if not health or not health.get("monitored"):
+            return None
+        days = health.get("days_to_full")
+        return bool(health.get("warning") or health.get("critical") or (days is not None and days <= 14))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        health = self.coordinator.data.get("health") or {}
+        return {k: health.get(k) for k in ("monitored", "warning", "critical", "unreadable", "problems", "days_to_full")}
+
+
+class NetlensRemoteSiteProblemSensor(NetlensHubEntity, BinarySensorEntity):
+    """On when a remote site stopped reporting or reports a problem. Unknown without remote sites."""
+
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_translation_key = "remote_site_problem"
+
+    def __init__(self, coordinator, entry) -> None:
+        super().__init__(coordinator, entry, "remote_site_problem")
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return bool((self.coordinator.data.get("remote_sites") or {}).get("total"))
+
+    @property
+    def is_on(self) -> bool | None:
+        sites = self.coordinator.data.get("remote_sites")
+        if not sites or not sites.get("total"):
+            return None
+        return bool(sites.get("silent") or sites.get("problems") or sites.get("services_down"))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        sites = self.coordinator.data.get("remote_sites") or {}
+        return {k: sites.get(k) for k in ("total", "silent", "problems", "devices_down", "services_down")}
 
 
 class NetlensPassiveSensor(NetlensHubEntity, BinarySensorEntity):

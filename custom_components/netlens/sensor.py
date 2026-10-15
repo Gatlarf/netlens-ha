@@ -18,8 +18,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
+from homeassistant.const import UnitOfTemperature
+from homeassistant.core import callback
+
 from . import NetlensConfigEntry
-from .entity import NetlensHubEntity
+from .entity import NetlensDeviceEntity, NetlensHubEntity, tracked_keys
 
 
 def _dig(data: dict[str, Any], *path: str) -> Any:
@@ -119,6 +122,23 @@ SENSORS: tuple[NetlensSensorDescription, ...] = (
                              native_unit_of_measurement="checks", value_fn=lambda d: _dig(d, "services", "down")),
     NetlensSensorDescription(key="services_total", translation_key="services_total", icon="mdi:server-network", state_class=SensorStateClass.MEASUREMENT,
                              native_unit_of_measurement="checks", entity_registry_enabled_default=False, value_fn=lambda d: _dig(d, "services", "total")),
+    NetlensSensorDescription(key="health_monitored", translation_key="health_monitored", icon="mdi:heart-pulse", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="devices", entity_registry_enabled_default=False, needs_data="health", value_fn=lambda d: _dig(d, "health", "monitored")),
+    NetlensSensorDescription(key="health_warning", translation_key="health_warning", icon="mdi:heart-pulse", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="devices", needs_data="health", value_fn=lambda d: _dig(d, "health", "warning")),
+    NetlensSensorDescription(key="health_critical", translation_key="health_critical", icon="mdi:heart-broken", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="devices", needs_data="health", value_fn=lambda d: _dig(d, "health", "critical")),
+    NetlensSensorDescription(key="health_unreadable", translation_key="health_unreadable", icon="mdi:heart-off-outline", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="devices", entity_registry_enabled_default=False, needs_data="health", value_fn=lambda d: _dig(d, "health", "unreadable")),
+    NetlensSensorDescription(key="disk_days_to_full", translation_key="disk_days_to_full", icon="mdi:harddisk", device_class=SensorDeviceClass.DURATION,
+                             native_unit_of_measurement=UnitOfTime.DAYS, state_class=SensorStateClass.MEASUREMENT, suggested_display_precision=0, needs_data="health",
+                             value_fn=lambda d: _dig(d, "health", "days_to_full")),
+    NetlensSensorDescription(key="remote_sites_total", translation_key="remote_sites_total", icon="mdi:source-branch", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="sites", entity_registry_enabled_default=False, needs_data="remote_sites", value_fn=lambda d: _dig(d, "remote_sites", "total")),
+    NetlensSensorDescription(key="remote_sites_silent", translation_key="remote_sites_silent", icon="mdi:source-branch-remove", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="sites", needs_data="remote_sites", value_fn=lambda d: _dig(d, "remote_sites", "silent")),
+    NetlensSensorDescription(key="remote_sites_problems", translation_key="remote_sites_problems", icon="mdi:alert-circle-outline", state_class=SensorStateClass.MEASUREMENT,
+                             native_unit_of_measurement="problems", needs_data="remote_sites", value_fn=lambda d: _dig(d, "remote_sites", "problems")),
     NetlensSensorDescription(key="plugin_updates", translation_key="plugin_updates", icon="mdi:puzzle-outline", state_class=SensorStateClass.MEASUREMENT,
                              native_unit_of_measurement="plugins", value_fn=lambda d: _dig(d, "update", "plugin_updates")),
     NetlensSensorDescription(key="uptime_24h", translation_key="uptime_24h", icon="mdi:chart-line", state_class=SensorStateClass.MEASUREMENT,
@@ -158,6 +178,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: NetlensConfigEntry, asyn
     coordinator = entry.runtime_data
     async_add_entities(NetlensSensor(coordinator, entry, description) for description in SENSORS)
 
+    added: set[tuple[str, str]] = set()
+
+    @callback
+    def add_device_health() -> None:
+        """Health readings of the tracked devices that have health monitoring in Netlens (also for ones that get it later)."""
+        new = []
+        for key in tracked_keys(entry):
+            health = (coordinator.devices.get(key) or {}).get("health")
+            if not health:
+                continue
+            for description in DEVICE_SENSORS:
+                if (key, description.key) not in added and (description.key == "health" or health.get(description.reading) is not None):
+                    added.add((key, description.key))
+                    new.append(NetlensDeviceHealthSensor(coordinator, entry, key, description))
+        if new:
+            async_add_entities(new)
+
+    add_device_health()
+    entry.async_on_unload(coordinator.async_add_listener(add_device_health))
+
 
 class NetlensSensor(NetlensHubEntity, SensorEntity):
     entity_description: NetlensSensorDescription
@@ -171,8 +211,50 @@ class NetlensSensor(NetlensHubEntity, SensorEntity):
         needs = self.entity_description.needs_data
         if needs is None:
             return super().entity_registry_enabled_default
-        return bool(_dig(self.coordinator.data, needs, "total") or _dig(self.coordinator.data, needs, "devices")) and self.entity_description.entity_registry_enabled_default
+        return bool(_dig(self.coordinator.data, needs, "total") or _dig(self.coordinator.data, needs, "devices") or _dig(self.coordinator.data, needs, "monitored")) \
+            and self.entity_description.entity_registry_enabled_default
 
     @property
     def native_value(self) -> Any:
         return self.entity_description.value_fn(self.coordinator.data)
+
+
+@dataclass(frozen=True, kw_only=True)
+class NetlensDeviceSensorDescription(SensorEntityDescription):
+    reading: str          # the key in the device's "health" block
+
+
+DEVICE_SENSORS: tuple[NetlensDeviceSensorDescription, ...] = (
+    NetlensDeviceSensorDescription(key="health", translation_key="device_health", reading="level", icon="mdi:heart-pulse", device_class=SensorDeviceClass.ENUM,
+                                   options=["ok", "warning", "critical"]),
+    NetlensDeviceSensorDescription(key="cpu", translation_key="device_cpu", reading="cpu", icon="mdi:cpu-64-bit", state_class=SensorStateClass.MEASUREMENT,
+                                   native_unit_of_measurement=PERCENTAGE, suggested_display_precision=0),
+    NetlensDeviceSensorDescription(key="mem", translation_key="device_memory", reading="mem", icon="mdi:memory", state_class=SensorStateClass.MEASUREMENT,
+                                   native_unit_of_measurement=PERCENTAGE, suggested_display_precision=0),
+    NetlensDeviceSensorDescription(key="disk", translation_key="device_disk", reading="disk", icon="mdi:harddisk", state_class=SensorStateClass.MEASUREMENT,
+                                   native_unit_of_measurement=PERCENTAGE, suggested_display_precision=0),
+    NetlensDeviceSensorDescription(key="temp", translation_key="device_temperature", reading="temp", device_class=SensorDeviceClass.TEMPERATURE,
+                                   state_class=SensorStateClass.MEASUREMENT, native_unit_of_measurement=UnitOfTemperature.CELSIUS, suggested_display_precision=0),
+    NetlensDeviceSensorDescription(key="battery", translation_key="device_battery", reading="battery", device_class=SensorDeviceClass.BATTERY,
+                                   state_class=SensorStateClass.MEASUREMENT, native_unit_of_measurement=PERCENTAGE),
+)
+
+
+class NetlensDeviceHealthSensor(NetlensDeviceEntity, SensorEntity):
+    """One health reading of a tracked device (processor, memory, fullest disk, temperature, UPS battery) and its overall level."""
+
+    entity_description: NetlensDeviceSensorDescription
+
+    def __init__(self, coordinator, entry, key: str, description: NetlensDeviceSensorDescription) -> None:
+        super().__init__(coordinator, entry, key)
+        self.entity_description = description
+        self._attr_unique_id = f"{entry.entry_id}_dev_{key}|{description.key}"      # "|" never appears in a MAC or an IP address
+
+    @property
+    def native_value(self) -> Any:
+        health = (self.netlens_device or {}).get("health") or {}
+        return health.get(self.entity_description.reading)
+
+    @property
+    def available(self) -> bool:
+        return super().available and bool((self.netlens_device or {}).get("health"))
